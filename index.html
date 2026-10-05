@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ゆるっと四柱推命｜生年月日から命式を読む</title>
+<style>
+:root{--bg:#faf6ee;--fg:#2a2420;--card:#fff;--mut:#7a6f64;--ac:#9b2d30;--bd:#e4dccd;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1c1917;--fg:#eee6da;--card:#2a2522;--mut:#a99d8f;--ac:#e0777a;--bd:#3d3631}}
+:root[data-theme="dark"]{--bg:#1c1917;--fg:#eee6da;--card:#2a2522;--mut:#a99d8f;--ac:#e0777a;--bd:#3d3631}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:"Hiragino Mincho ProN","Yu Mincho",serif;line-height:1.6}
+main{max-width:560px;margin:0 auto;padding:20px 16px 40px}
+h1{text-align:center;letter-spacing:.3em;color:var(--ac);font-size:1.6rem;margin:8px 0 4px}
+.sub{text-align:center;color:var(--mut);font-size:.85rem;margin-bottom:20px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:16px}
+label{display:block;font-size:.85rem;color:var(--mut);margin:8px 0 4px}
+input,button{font:inherit;width:100%;box-sizing:border-box;padding:10px;border-radius:8px;border:1px solid var(--bd);background:var(--bg);color:var(--fg)}
+button{background:var(--ac);color:#fff;border:0;margin-top:14px;font-weight:bold;cursor:pointer}
+.row{display:flex;gap:10px}.row>div{flex:1}
+.p{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center}
+.p div{border:1px solid var(--bd);border-radius:8px;padding:8px 0}
+.p small{display:block;color:var(--mut);font-size:.7rem}
+.p b{display:block;font-size:1.6rem;line-height:1.2}
+.p i{display:block;font-style:normal;font-size:.7rem;color:var(--ac)}
+.bar{display:flex;align-items:center;gap:8px;margin:6px 0}
+.bar span:first-child{width:2em}.bar div{height:12px;border-radius:6px}
+h2{font-size:1rem;margin:0 0 8px;color:var(--ac)}
+.note{font-size:.75rem;color:var(--mut)}
+#out{display:none}.fp,.pc{border:1px solid var(--bd);border-radius:10px;padding:10px 12px;margin-top:10px}.fp input{margin-top:4px}.pc b{color:var(--ac)}.cyc{display:flex;justify-content:center;gap:4px;flex-wrap:wrap;font-size:.8rem;margin:8px 0}.cyc span{padding:2px 10px;border-radius:12px;color:#fff}#fo{display:none}button.sec{background:none;color:var(--ac);border:1px dashed var(--ac)}.fx{background:none;color:var(--mut);border:0;width:auto;margin:6px 0 0;padding:2px 6px;font-weight:normal;font-size:.8rem}#fo h3{font-size:.95rem;margin:18px 0 6px;color:var(--ac);border-left:4px solid var(--ac);padding-left:8px}#fo p{margin:6px 0}.hl{background:var(--bg);border-radius:10px;padding:10px 12px}em{display:block;font-style:normal;font-size:.62rem;color:var(--mut);margin-top:4px;line-height:1.4}select{font:inherit;width:100%;box-sizing:border-box;padding:10px;border-radius:8px;border:1px solid var(--bd);background:var(--bg);color:var(--fg)}.dy{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center;margin-top:8px}.dy div{border:1px solid var(--bd);border-radius:8px;padding:6px 0;font-size:.75rem}.dy b{display:block;font-size:1.2rem}.sc{text-align:center;font-size:2.4rem;color:var(--ac);font-weight:bold}
+</style></head><body><main>
+<h1>四柱推命</h1><div class="sub">生年月日から命式を読み解く</div>
+<div class="card"><h2>あなた</h2>
+<div class="row"><div><label>生年月日</label><input type="date" id="d" value="1990-01-01" min="1900-01-01" max="2100-12-31"></div>
+<div><label>出生時刻（任意・日本時間）</label><input type="time" id="t"></div></div>
+<label>性別（大運の順逆に使います）</label><select id="g"><option value="m">男性</option><option value="f">女性</option></select></div>
+<div class="card"><h2>相手（相性を診るときだけ）</h2>
+<div class="row"><div><label>生年月日</label><input type="date" id="d2" min="1900-01-01" max="2100-12-31"></div>
+<div><label>出生時刻（任意）</label><input type="time" id="t2"></div></div>
+<button onclick="go()">診断する</button></div>
+<div id="out">
+<div class="card"><h2>命式（上段：天干／中段：地支／下段：蔵干）</h2><div class="p" id="pil"></div><div class="note" id="tn"></div></div>
+<div class="card"><h2>五行バランス</h2><div id="bal"></div></div>
+<div class="card"><h2>日主（あなたの本質）</h2><div id="dm"></div></div>
+<div class="card"><h2>身強・身弱と用神</h2><div id="yj"></div></div>
+<div class="card"><h2>大運</h2><div class="note" id="dun"></div><div class="dy" id="dy"></div></div>
+<div class="card"><h2>流年（今年から6年）</h2><div class="note">◎追い風 ○活かしやすい →穏やか △調整 ✕慎重に（用神・忌神との関係による目安。結果ではなく、心構えのヒントです）</div><div class="dy" id="ly"></div></div>
+<div class="card" id="cp" style="display:none"><h2>相性診断</h2><div class="sc" id="sc"></div><div id="cn"></div></div>
+<div class="note">※節入り時刻は太陽黄経の天文計算による値で、数分〜十数分の誤差があります。時刻未入力の場合は正午として計算します。娯楽・参考としてお楽しみください。</div>
+</div>
+<div class="card"><h2>家族の五行マップ</h2>
+<div class="note">家族それぞれの五行を並べて、偏りと補い合いを眺めます。2人以上入力してください（時刻は任意）。</div>
+<div class="fp"><div class="row"><div><input class="fn" value="あなた" aria-label="名前"></div><div><select class="fg" aria-label="性別"><option value="">性別：未選択</option><option value="m">男性</option><option value="f">女性</option></select></div></div><div class="row"><div><label>生年月日</label><input type="date" class="fd" min="1900-01-01" max="2100-12-31"></div><div><label>出生時刻（任意）</label><input type="time" class="ft"></div></div></div>
+<div class="fp"><div class="row"><div><input class="fn" value="夫" aria-label="名前"></div><div><select class="fg" aria-label="性別"><option value="">性別：未選択</option><option value="m">男性</option><option value="f">女性</option></select></div></div><div class="row"><div><label>生年月日</label><input type="date" class="fd" min="1900-01-01" max="2100-12-31"></div><div><label>出生時刻（任意）</label><input type="time" class="ft"></div></div></div>
+<div class="fp"><div class="row"><div><input class="fn" value="息子" aria-label="名前"></div><div><select class="fg" aria-label="性別"><option value="">性別：未選択</option><option value="m">男性</option><option value="f">女性</option></select></div></div><div class="row"><div><label>生年月日</label><input type="date" class="fd" min="1900-01-01" max="2100-12-31"></div><div><label>出生時刻（任意）</label><input type="time" class="ft"></div></div></div>
+<div class="fp"><div class="row"><div><input class="fn" value="娘" aria-label="名前"></div><div><select class="fg" aria-label="性別"><option value="">性別：未選択</option><option value="m">男性</option><option value="f">女性</option></select></div></div><div class="row"><div><label>生年月日</label><input type="date" class="fd" min="1900-01-01" max="2100-12-31"></div><div><label>出生時刻（任意）</label><input type="time" class="ft"></div></div></div>
+<button class="sec" id="fadd" onclick="addFam()">＋ 家族を追加（最大10人）</button>
+<button onclick="fam()">家族マップを見る</button>
+<div id="fo"></div></div>
+<script>
+const S="甲乙丙丁戊己庚辛壬癸",B="子丑寅卯辰巳午未申酉戌亥",E="木火土金水",
+EC=["#4a9a52","#d4533b","#b8923a","#8a8f99","#3f78c4"],
+SN=["比肩","劫財","食神","傷官","偏財","正財","偏官","正官","偏印","印綬"],
+BE=[4,2,0,0,2,1,1,2,3,3,2,4],
+HS=[[9],[5,9,7],[0,2,4],[1],[4,1,9],[2,6,4],[3,5],[5,3,1],[6,8,4],[7],[4,7,3],[8,0]],
+DESC=["まっすぐ伸びる大樹。向上心と正義感が強く、人を導く力があります。","しなやかな草花。柔軟で協調性があり、粘り強く環境に適応します。","燃え盛る太陽。明るく情熱的で、周囲を照らす面倒見のよさがあります。","静かな灯火。繊細で洞察力があり、内に熱い想いを秘めています。","どっしりした山。包容力と信頼感があり、安定を築く力があります。","豊かな田畑。穏やかで世話好き、人を育てる才能があります。","鍛えられた鋼。決断力と行動力があり、義理堅い性格です。","磨かれた宝石。美意識が高く、繊細で誇り高い一面があります。","大河の流れ。知性と度量があり、自由で発想が広いタイプです。","恵みの雨。優しく思慮深く、直感と共感力に優れています。"];
+const rad=Math.PI/180;
+function lon(jd){const T=(jd-2451545)/36525,L0=280.46646+36000.76983*T,M=(357.52911+35999.05029*T)*rad,C=(1.914602-.004817*T)*Math.sin(M)+.019993*Math.sin(2*M)+.000289*Math.sin(3*M),om=(125.04-1934.136*T)*rad;return(((L0+C-.00569-.00478*Math.sin(om))%360)+360)%360}
+function cross(tg,jd){let t=jd;for(let i=0;i<8;i++){t+=(((tg-lon(t)+540)%360)-180)/.9856}return t}
+const jdOf=(y,m,d,h,mi)=>(Date.UTC(y,m-1,d,h,mi)-9*36e5)/864e5+2440587.5;
+function fmt(jd){const x=new Date((jd-2440587.5)*864e5+9*36e5),p=n=>String(n).padStart(2,"0");return`${x.getUTCMonth()+1}月${x.getUTCDate()}日 ${p(x.getUTCHours())}:${p(x.getUTCMinutes())}`}
+function star(dm,s){const a=Math.floor(dm/2),b=Math.floor(s/2),r=(b-a+5)%5;return SN[[0,2,4,6,8][r]+((dm%2)==(s%2)?0:1)]}
+function calc(ds,ts,g){
+ const[y,m,d]=ds.split("-").map(Number);let h=12,mi=0,hasT=false;
+ if(ts){[h,mi]=ts.split(":").map(Number);hasT=true}
+ const jd=jdOf(y,m,d,h,mi),L=lon(jd);
+ let dt=Date.UTC(y,m-1,d);if(hasT&&h>=23)dt+=864e5;
+ const di=(Math.round(dt/864e5)+25577)%60;
+ const yy=(m<=2&&L<315)?y-1:y,yi=((yy-4)%60+60)%60;
+ const mo=Math.floor(((L-315+360)%360)/30),mb=(mo+2)%12,ms=((yi%10%5)*2+2+mo)%10;
+ const P=[[yi%10,yi%12,"年"],[ms,mb,"月"],[di%10,di%12,"日"]];
+ if(hasT){const hb=Math.floor((h+1)/2)%12;P.push([(di%10%5*2+hb)%10,hb,"時"])}
+ const dm=di%10,cnt=[0,0,0,0,0];
+ P.forEach(p=>{cnt[Math.floor(p[0]/2)]++;cnt[BE[p[1]]]++});
+ const de=Math.floor(dm/2);let sup=0,tt=0;
+ P.forEach(p=>{if(p[2]!="日"){tt+=1;const e=Math.floor(p[0]/2);if(e==de||(e+1)%5==de)sup+=1}
+  HS[p[1]].forEach((x,j)=>{const w=j==0?(p[2]=="月"?3:1):.3;tt+=w;const e=Math.floor(x/2);if(e==de||(e+1)%5==de)sup+=w})});
+ const ratio=sup/tt,strong=ratio>=.5,sel=strong?[(de+1)%5,(de+2)%5,(de+3)%5]:[(de+4)%5,de],bad=strong?[de,(de+4)%5]:[(de+1)%5,(de+2)%5,(de+3)%5],yong=[...sel].sort((a,b)=>cnt[a]-cnt[b])[0];
+ const st=315+30*mo,tPrev=cross(st%360,jd-15),tNext=cross((st+30)%360,jd+15);
+ const fwd=(yi%2==0)==(g=="m"),days=fwd?tNext-jd:jd-tPrev,mon=Math.round(days*4);
+ let mIdx=0;for(let i=0;i<60;i++)if(i%10==ms&&i%12==mb)mIdx=i;
+ const dun=[];for(let k=1;k<=8;k++){const i=(mIdx+(fwd?k:-k)+60)%60;dun.push([i%10,i%12,mon+120*(k-1)])}
+ return{ratio,strong,sel,bad,yong,P,dm,cnt,db:di%12,fwd,mon,dun,tPrev,tNext,hasT}}
+function compat(a,b){let sc=50;const n=[],ea=Math.floor(a.dm/2),eb=Math.floor(b.dm/2);
+ if(Math.abs(a.dm-b.dm)==5){sc+=20;n.push("日干が干合：強く惹かれ合い、互いを補い合える関係です。")}
+ else if(ea==eb){sc+=5;n.push("日干が同じ五行：価値観が似ていて気心が知れた仲です。")}
+ else if((ea+1)%5==eb||(eb+1)%5==ea){sc+=10;n.push("日干が相生：一方がもう一方を自然に支え育てる関係です。")}
+ else{sc-=5;n.push("日干が相剋：刺激的ですが、ぶつかりやすい面もあります。")}
+ const sm=a.db+b.db;
+ if(sm==1||sm==13){sc+=15;n.push("日支が六合：心の深い部分で結びつく、安定した縁です。")}
+ else if((a.db-b.db+12)%12==6){sc-=15;n.push("日支が冲：考え方の違いが出やすく、思いやりが鍵になります。")}
+ let f=0;[[a,b],[b,a]].forEach(([x,y])=>x.cnt.forEach((c,i)=>{if(!c&&y.cnt[i])f++}));
+ if(f){sc+=Math.min(f,3)*5;n.push(`五行の補完：お互いに不足する五行を${f}つ補い合えます。`)}
+ return[Math.max(20,Math.min(98,sc)),n]}
+const ag=m=>`${Math.floor(m/12)}歳${m%12?m%12+"ヶ月":""}`;
+function go(){
+ const v=document.getElementById("d").value;if(!v)return;
+ const g=document.getElementById("g").value,A=calc(v,document.getElementById("t").value,g),dm=A.dm;
+ document.getElementById("pil").innerHTML=A.P.map(p=>`<div><small>${p[2]}柱</small><b>${S[p[0]]}</b><b>${B[p[1]]}</b><i>${p[2]=="日"?"日主":star(dm,p[0])}</i><em>${HS[p[1]].map((s,i)=>S[s]+" "+star(dm,s)+(i?"":"(本)")).join("<br>")}</em></div>`).join("");
+ document.getElementById("tn").textContent=`月柱の節入り：${fmt(A.tPrev)}（日本時間）`+(A.hasT?"":"／時刻未入力のため三柱で表示");
+ const tot=A.cnt.reduce((a,b)=>a+b,0);
+ document.getElementById("bal").innerHTML=A.cnt.map((c,i)=>`<div class="bar"><span>${E[i]}</span><div style="width:${c/tot*160}%;background:${EC[i]};min-width:${c?4:0}px"></div><span>${c}</span></div>`).join("");
+ const lack=E.split("").filter((_,i)=>!A.cnt[i]),top=A.cnt.indexOf(Math.max(...A.cnt));
+ document.getElementById("dm").innerHTML=`<b>${S[dm]}（${E[Math.floor(dm/2)]}の${dm%2?"陰":"陽"}）</b><br>${DESC[dm]}<br><span class="note">最も多い五行は「${E[top]}」。${lack.length?"不足している五行は「"+lack.join("・")+"」です。":"五行がそろっています。"}</span>`;
+ document.getElementById("dun").textContent=`${A.fwd?"順行":"逆行"}／立運：${ag(A.mon)}から（以降10年ごとに移ります）`;
+ document.getElementById("dy").innerHTML=A.dun.map(x=>`<div>${Math.floor(x[2]/12)}歳〜<b>${S[x[0]]}${B[x[1]]}</b>${star(dm,x[0])}</div>`).join("");
+ const nm=l=>l.map(e=>E[e]).join("・"),pc=Math.round(A.ratio*100);
+ document.getElementById("yj").innerHTML=`<b>${A.strong?"身強":"身弱"}</b>（日主を支える力 ${pc}%）<br>${A.strong?"力が余っているので、エネルギーを外へ発散・活用する五行が助けになります。":"力が不足気味なので、日主を生かし支える五行が助けになります。"}<br><p><b>用神：${E[A.yong]}</b><br><span class="note">あなたの命式のバランスを整える「いちばんの味方」の五行。この要素を色・方角・習慣・人付き合いなどに取り入れると、力を発揮しやすくなるとされます。</span></p><p><b>喜神：${nm(A.sel.filter(e=>e!=A.yong))||"なし"}</b><br><span class="note">用神を助ける「サブの味方」の五行。あわせて意識すると、よい流れを後押しします。</span></p><p><b>忌神：${nm(A.bad)}</b><br><span class="note">バランスをさらに偏らせやすい五行。悪いものという意味ではなく、増えすぎると空回りしやすいので「ほどほどに」という目安です。</span></p><span class="note">月令（月支）を重く見た簡易判定で、調候（季節の寒暖）や格局は考慮していません。</span>`;
+ const cy=new Date().getFullYear();
+ document.getElementById("ly").innerHTML=[0,1,2,3,4,5].map(k=>{const y=cy+k,i=((y-4)%60+60)%60,t=i%10,br=i%12;let sc=0;[Math.floor(t/2),BE[br]].forEach(e=>{if(A.sel.includes(e))sc++;else sc--});sc=Math.max(-2,Math.min(2,sc));return`<div>${y}年<b>${S[t]}${B[br]}</b>${star(dm,t)} ${["✕慎重に","△調整","→穏やか","○活かしやすい","◎追い風"][sc+2]}${(A.db-br+12)%12==6?"<em>日支と冲</em>":""}</div>`}).join("");
+ const v2=document.getElementById("d2").value,cp=document.getElementById("cp");
+ if(v2){const Bp=calc(v2,document.getElementById("t2").value,"m"),[sc,n]=compat(A,Bp);
+  document.getElementById("sc").textContent=sc+"点";
+  document.getElementById("cn").innerHTML=`<p>あなた：日主 ${S[A.dm]}${B[A.db]}／相手：日主 ${S[Bp.dm]}${B[Bp.db]}</p>`+n.map(t=>`<p>・${t}</p>`).join("");cp.style.display="block"}else cp.style.display="none";
+ document.getElementById("out").style.display="block"}
+
+function addFam(){const n=document.querySelectorAll(".fp").length;if(n>=10)return;
+ const d=document.createElement("div");d.className="fp";
+ d.innerHTML=`<div class="row"><div><input class="fn" value="家族${n+1}" aria-label="名前"></div><div><select class="fg" aria-label="性別"><option value="">性別：未選択</option><option value="m">男性</option><option value="f">女性</option></select></div></div><div class="row"><div><label>生年月日</label><input type="date" class="fd" min="1900-01-01" max="2100-12-31"></div><div><label>出生時刻（任意）</label><input type="time" class="ft"></div></div><button class="fx" onclick="this.parentNode.remove();document.getElementById('fadd').style.display=''">この欄を削除</button>`;
+ const b=document.getElementById("fadd");b.parentNode.insertBefore(d,b);
+ if(n+1>=10)b.style.display="none"}
+const ROLE=["伸ばし、始める役","明るさや温かさを広げる役","受け止めて支える役","整えて形にする役","流れをつなぎ、知恵を巡らせる役"],
+HINT=["緑の植物や朝の散歩","温かい食事や笑顔の時間","規則正しい暮らしや土に触れること","整理整頓や季節の行事","ゆっくり休む時間や水辺のお出かけ"];
+const esc=t=>t.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const enm=l=>l.map(e=>E[e]).join("・"),tops=a=>a.map((c,i)=>c==Math.max(...a)?i:-1).filter(i=>i>=0);
+function fam(){
+ const L=[];document.querySelectorAll(".fp").forEach(el=>{const d=el.querySelector(".fd").value;if(!d)return;const r=calc(d,el.querySelector(".ft").value,el.querySelector(".fg").value||"m");r.name=esc(el.querySelector(".fn").value||"家族");L.push(r)});
+ const o=document.getElementById("fo");o.style.display="block";
+ if(L.length<2){o.innerHTML='<p class="note">2人以上の生年月日を入れてください。</p>';return}
+ const T=[0,0,0,0,0];L.forEach(r=>r.cnt.forEach((c,i)=>T[i]+=c));const mt=Math.max(...T);
+ const bars=(a,k,mx)=>a.map((c,i)=>`<div class="bar"><span>${E[i]}</span><div style="width:${c/mx*k}%;background:${EC[i]};min-width:${c?4:0}px"></div><span>${c}</span></div>`).join("");
+ let h="<h3>ひとりずつの五行</h3>"+L.map(r=>{const de=Math.floor(r.dm/2),lk=r.cnt.map((c,i)=>c?-1:i).filter(i=>i>=0);
+  return`<div class="pc"><b>${r.name}</b>　日主 ${S[r.dm]}（${E[de]}の${r.dm%2?"陰":"陽"}）${bars(r.cnt,100,8)}<div class="note">最も多い：${enm(tops(r.cnt))}　／　不足：${lk.length?enm(lk):"なし"}</div></div>`}).join("");
+ h+="<h3>家族全体の五行</h3>"+bars(T,100,mt);
+ const hi=tops(T),lo=T.map((c,i)=>c==Math.min(...T)?i:-1).filter(i=>i>=0);
+ h+=`<p>家族全体では「${enm(hi)}」の力が豊かで、「${enm(lo)}」はやさしく控えめです。${T[lo[0]]==0?"控えめな分、これから育てていける余白とも言えます。":""}</p><p class="note">「${E[lo[0]]}」は、${HINT[lo[0]]}などで、暮らしの中にそっと足せます。</p>`;
+ const lines=[],gen=[];
+ L.forEach(q=>q.cnt.forEach((c,x)=>{if(c)return;const m=Math.max(...L.filter(p=>p!==q).map(p=>p.cnt[x]));if(m>0)lines.push(`${q.name}に少ない「${E[x]}」は、${L.filter(p=>p!==q&&p.cnt[x]==m).map(p=>p.name).join("・")}が持っています。`)}));
+ L.forEach(p=>{const e=tops(p.cnt)[0],t=(e+1)%5,b=L.filter(q=>q!==p&&q.cnt[t]<=1);if(b.length)gen.push(`${p.name}の「${E[e]}」は、${b.map(q=>q.name).join("・")}の「${E[t]}」を生じやすい組み合わせです。`)});
+ h+='<h3>補い合いのかたち</h3><div class="cyc">'+[0,1,2,3,4].map(i=>`<span style="background:${EC[i]}">${E[i]}</span>${i<4?"→":""}`).join("")+'<span style="background:none;color:var(--mut)">→木…</span></div><div class="note" style="text-align:center">五行は「木が火を、火が土を、土が金を、金が水を、水が木を」育てると考えます。</div>';
+ h+=(lines.length+gen.length)?lines.slice(0,5).concat(gen.slice(0,3)).map(t=>`<p>・${t}</p>`).join(""):"<p>・みなさんの五行がよく似ていて、同じ感覚を分かち合いやすい家族です。</p>";
+ h+='<h3>家族のひとこと</h3><div class="hl">'+L.map(r=>{const e=tops(r.cnt)[0];return`<p>${r.name}は「${E[e]}」が豊かで、${ROLE[e]}を担いやすいかもしれません。</p>`}).join("")+'<p>五行の違いは、足りないところではなく、家族の中での「役割の違い」として眺められます。多いところは持ち味、少ないところは誰かに助けてもらえる余白。凸凹があるからこそ、お互いを補い合えるのかもしれません。</p></div><p class="note">娯楽・参考としてお楽しみください。</p>';
+ o.innerHTML=h}
+</script>
+<footer class="note" style="text-align:center;margin-top:24px;border-top:1px solid var(--bd);padding-top:16px"><p>流派や計算法によって結果が異なる場合があります。本アプリは娯楽・参考用です。</p><p>入力情報は保存・送信されません。</p></footer></main></body></html>
